@@ -33,9 +33,9 @@ pip install numpy opencv-python matplotlib imageio tifffile pillow torch torchvi
 1. "COPY" images to Train_Model/TRAINING_IMAGES and masks to Train_Model/TRAINING_MASKS
 2. Run train.model.py, wait until training is completed. Best model(Highest Dicescore) will be saved at: Use_Model/saved_models as a .pth file. 
 
-## Use Model to Segment Inference Images
+## Use Saved Model
 1. "COPY" images to Use_Model/INPUT_IMAGES
-2. Run use_model.py and follow prompt on terminal. Segmented Masks can be seen in Use_Model/OUTPUT_MASKS.
+2. Run use_model.py and follow the prompts on terminal. Segmented Masks can be seen in Use_Model/OUTPUT_MASKS.
 
 ## **WARNING** 
   **In order to prevent data from different datasets be mixed together, train_model.py will clear all images in Train_Model/TRAINING_IMAGES and Train_Model/TRAINING_MASKS. Please Copy the dataset into the folder when training to keep the original dataset without being deleted**
