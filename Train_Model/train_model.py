@@ -64,3 +64,5 @@ process_images_across_folds()
 evaluate_and_save_best_model()
 calculate_mean_snr()
 clear_images_in_folder()
+
+input("Press enter to continue)
