@@ -38,6 +38,8 @@ pip install numpy opencv-python matplotlib imageio tifffile pillow torch torchvi
 2. Run use_model.py and follow the prompts on terminal. Segmented Masks can be seen in Use_Model/OUTPUT_MASKS.
 
 ## **WARNING** 
-   **To prevent data from different datasets from being mixed together, train_model.py will automatically delete all images in Train_Model/TRAINING_IMAGES and Train_Model/TRAINING_MASKS.Please copy your dataset into these folders before training to ensure that your original dataset remains intact.**
+   **To prevent data from different datasets from being mixed together, train_model.py will automatically delete all images in Train_Model/TRAINING_IMAGES and Train_Model/TRAINING_MASKS.**
+   
+   **Please copy your dataset into these folders before training to ensure that your original dataset remains intact.**
    
    **Similarly, use_model.py will delete all images in Use_Model/INPUT_IMAGES to avoid segmenting previously used inputs.**
