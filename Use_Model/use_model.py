@@ -56,10 +56,6 @@ temp_stack_mask_folder = os.path.join(generated_path, "processing_area/temp_stac
 for path in [output_folder, temp_crop_folder, temp_mask_folder, temp_stack_folder, temp_stack_mask_folder]:
     os.makedirs(path, exist_ok=True)
 
-# Clear output
-clear_folder(output_folder)
-print("[INFO] Previous Output Masks Cleared.")
-
 # Load model
 model_folder = os.path.join(generated_path, "saved_models")
 model_files = [f for f in os.listdir(model_folder) if f.endswith(".pth")]
