@@ -27,13 +27,13 @@ https://www.python.org/downloads/release/python-3124/
 pip install numpy opencv-python matplotlib imageio tifffile pillow torch torchvision scikit-learn tqdm
 ```
 
-    if you have a GPU, uninstall torch using this command:
+if you have a GPU, uninstall torch using this command:
 
 ```bash
 pip uninstall torch torchvision torchaudio
 ```
-    
-    and install this version of torch to use GPU instead:
+
+and install this version of torch to use GPU instead:
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
