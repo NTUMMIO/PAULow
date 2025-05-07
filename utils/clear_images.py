@@ -2,7 +2,7 @@ import os
 import shutil
 
 def clear_images_in_folder():
-    folders_to_clear = ['utils/temp_files']
+    folders_to_clear = ['utils/temp_files', 'Train_Model']
 
     for folder in folders_to_clear:
         folder_path = os.path.join(os.getcwd(), folder)  # Ensure absolute path
