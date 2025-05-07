@@ -11,22 +11,11 @@ def get_largest_power_of_2_window(image):
     
     return largest_power_of_2
 
-def pad_image(image, target_height, target_width):
-    """Pad an image to match the target dimensions, preserving the number of channels."""
-    height, width = image.shape[:2]
-    pad_bottom = target_height - height
-    pad_right = target_width - width
-
-    # Get the number of channels
-    num_channels = image.shape[2] if len(image.shape) == 3 else 1
-    
-    # Generate the padding value (0s for all channels)
-    pad_value = (0,) * num_channels  # Creates a tuple of zeros matching the number of channels
-
-    # Pad the image
-    padded_image = cv2.copyMakeBorder(image, 0, pad_bottom, 0, pad_right, cv2.BORDER_CONSTANT, value=pad_value)
-
-    return padded_image
+def pad_image(image, padded_height, padded_width, pad_value=0):
+    """Pads the image to the target height and width using constant padding."""
+    pad_bottom = max(0, padded_height - image.shape[0])
+    pad_right = max(0, padded_width - image.shape[1])
+    return cv2.copyMakeBorder(image, 0, pad_bottom, 0, pad_right, cv2.BORDER_CONSTANT, value=pad_value)
 
 def crop_images():
     # Define paths
@@ -49,10 +38,9 @@ def crop_images():
         img_path = os.path.join(image_folder, img_file)
         mask_path = os.path.join(mask_folder, mask_file)
 
-        img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)  # Use IMREAD_UNCHANGED to load multi-channel images
+        img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
-        # Ensure images loaded successfully
         if img is None:
             print(f"Warning: Failed to load image '{img_file}'. Skipping...")
             continue
@@ -60,25 +48,20 @@ def crop_images():
             print(f"Warning: Failed to load mask '{mask_file}'. Skipping...")
             continue
 
-        # Determine the maximum crop size
         crop_size = get_largest_power_of_2_window(img)
 
-        # Compute padded size correctly
-        padded_width = (img.shape[1] // crop_size) * crop_size if img.shape[1] % crop_size == 0 else ((img.shape[1] // crop_size) + 1) * crop_size
-        padded_height = (img.shape[0] // crop_size) * crop_size if img.shape[0] % crop_size == 0 else ((img.shape[0] // crop_size) + 1) * crop_size
+        padded_width = ((img.shape[1] + crop_size - 1) // crop_size) * crop_size
+        padded_height = ((img.shape[0] + crop_size - 1) // crop_size) * crop_size
 
-        # Pad images and masks based on the number of channels
         padded_img = pad_image(img, padded_height, padded_width)
         padded_mask = pad_image(mask, padded_height, padded_width)
 
-        # Compute grid size
         num_cols = padded_width // crop_size
         num_rows = padded_height // crop_size
 
-        # Crop systematically
         crop_count = 0
-        img_extension = os.path.splitext(img_file)[1].lower()  # Get the extension of the input image
-        mask_extension = os.path.splitext(mask_file)[1].lower()  # Get the extension of the mask image
+        img_extension = os.path.splitext(img_file)[1].lower()
+        mask_extension = os.path.splitext(mask_file)[1].lower()
 
         for row in range(num_rows):
             for col in range(num_cols):
@@ -88,11 +71,9 @@ def crop_images():
                 cropped_img = padded_img[y:y + crop_size, x:x + crop_size]
                 cropped_mask = padded_mask[y:y + crop_size, x:x + crop_size]
 
-                # Save cropped images with the same extension as the original image
                 img_name = f'{os.path.splitext(img_file)[0]}_crop_{crop_count + 1}{img_extension}'
                 mask_name = f'{os.path.splitext(mask_file)[0]}_crop_{crop_count + 1}{mask_extension}'
 
-                # Save images with their respective number of channels
                 cv2.imwrite(os.path.join(training_images_folder, img_name), cropped_img)
                 cv2.imwrite(os.path.join(training_masks_folder, mask_name), cropped_mask)
 
