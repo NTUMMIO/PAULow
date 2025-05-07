@@ -12,6 +12,11 @@ import cv2
 from utils.model.unet import AttentionUNet
 from utils.cropping_image import get_largest_power_of_2_window
 
+# Define device
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"[INFO] PyTorch version: {torch.__version__}")
+print(f"[INFO] Using device: {device}")
+
 # Utility functions
 def get_image_channels(image):
     if image.ndim == 2:
@@ -81,24 +86,28 @@ selected_model_file = model_files[choice - 1]
 model_path = os.path.join(model_folder, selected_model_file)
 
 # Detect input channel from a sample image
-sample_image_path = os.path.join(input_folder, os.listdir(input_folder)[0])
+valid_extensions = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp")
+input_images = [f for f in os.listdir(input_folder) if f.lower().endswith(valid_extensions)]
+if not input_images:
+    print("[ERROR] No input images found in the INPUT_IMAGES folder.")
+    exit()
+
+sample_image_path = os.path.join(input_folder, input_images[0])
 sample_image = tiff.imread(sample_image_path)
 
-# If it's a stack (4D or 3D with Slices), check per-slice channels
 if sample_image.ndim == 4:
-    input_channels = sample_image.shape[-1]  # (S, H, W, C)
+    input_channels = sample_image.shape[-1]
 elif sample_image.ndim == 3 and sample_image.shape[0] > 4:
-    input_channels = get_image_channels(sample_image[0])  # First slice
+    input_channels = get_image_channels(sample_image[0])
 else:
     input_channels = get_image_channels(sample_image)
 
-# Initialize model with correct input channels
-model = AttentionUNet(img_ch=input_channels)
-model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+# Initialize and load model to device
+model = AttentionUNet(img_ch=input_channels).to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 
 transform = transforms.Compose([transforms.ToTensor()])
-valid_extensions = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp")
 
 def process_image(image, filename, output_dir=output_folder):
     input_channels = get_image_channels(image)
@@ -127,7 +136,7 @@ def process_image(image, filename, output_dir=output_folder):
         patch_img = cv2.imread(patch_path, cv2.IMREAD_UNCHANGED)
         if patch_img.ndim == 2:
             patch_img = np.expand_dims(patch_img, axis=-1)
-        patch_tensor = transform(patch_img).unsqueeze(0).float()
+        patch_tensor = transform(patch_img).unsqueeze(0).float().to(device)
 
         with torch.no_grad():
             output = model(patch_tensor)
@@ -160,7 +169,6 @@ def process_stack(stack, filename):
         return
     slices = stack.shape[0]
 
-    # Save slices
     for i in range(slices):
         slice_img = stack[i]
         if slice_img.dtype != np.uint8:
@@ -168,14 +176,12 @@ def process_stack(stack, filename):
         slice_path = os.path.join(temp_stack_folder, f"{os.path.splitext(filename)[0]}_slice_{i}.tif")
         tiff.imwrite(slice_path, slice_img)
 
-    # Process each slice
     for i in range(slices):
         slice_img = tiff.imread(os.path.join(temp_stack_folder, f"{os.path.splitext(filename)[0]}_slice_{i}.tif"))
         if slice_img.ndim == 3 and slice_img.shape[-1] > 4:
-            slice_img = slice_img[:, :, :3]  # Truncate or handle accordingly
+            slice_img = slice_img[:, :, :3]
         process_image(slice_img, f"{os.path.splitext(filename)[0]}_slice_{i}.tif", output_dir=temp_stack_mask_folder)
 
-    # Stack masks
     mask_stack = []
     for i in range(slices):
         mask_slice_path = os.path.join(temp_stack_mask_folder, f"{os.path.splitext(filename)[0]}_slice_{i}_mask.tif")
@@ -211,8 +217,7 @@ for filename in os.listdir(input_folder):
     else:
         process_image(img, filename)
 
-# Clear input folder
 clear_folder(input_folder)
 
 print("[INFO] Mask generation complete.")
-print("[INFO] Input Images Cleared.") 
+print("[INFO] Input Images Cleared.")
