@@ -1,0 +1,71 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import torch
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from sklearn.model_selection import KFold
+from torchvision import transforms
+from utils.datasetloader.dataset import SegmentationDataset
+from utils.model.unet import AttentionUNet
+from utils.training.trainer import train_model
+from utils.training.trainer import plot_loss_curves
+from utils.stack_splitter import process_all_images, process_all_masks
+from utils.cropping_image import crop_images
+from utils.split_dataset import split_dataset
+from utils.clear_images import clear_images_in_folder
+from utils.mean_SNR import calculate_mean_snr
+from utils.generate_mask import process_images_across_folds
+from utils.mask_compare import evaluate_and_save_best_model
+from utils.training.trainer import EarlyStopping  
+
+# Preprocessing and splitting the dataset
+process_all_images()
+process_all_masks()
+split_dataset()
+crop_images()
+
+# Ask user for the model name
+model_name = input("\n[INPUT] Name of the model: ")
+print("\n")
+
+# Define paths
+data_path = "utils/temp_files/Model_Training"
+dataset_path = os.path.join(data_path, "Training_Dataset")
+images_path = os.path.join(dataset_path, "Training_Images")
+masks_path = os.path.join(dataset_path, "Training_Masks")
+
+# Hyperparameters
+batch_size = 16
+num_epochs = 100
+num_folds = 5
+learning_rate = 0.00001
+
+# Data Transformations
+transform = transforms.Compose([transforms.ToTensor()])
+
+# Initialize dataset
+dataset = SegmentationDataset(images_path, masks_path, transform=transform)
+
+# Dynamically determine the number of input channels based on the dataset
+input_channels = dataset.get_input_channels()
+
+# K-fold Cross-validation setup
+kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
+
+# Initialize model function
+model_fn = lambda: AttentionUNet(img_ch=input_channels)
+
+# Initialize EarlyStopping (set appropriate patience, delta, and threshold values)
+early_stopping = EarlyStopping(patience=10, delta=0.01, threshold=0.001)
+
+# Call training function and pass the model name along with early_stopping
+train_model(model_fn , dataset, kf, batch_size, num_epochs, early_stopping, model_name=model_name)
+
+# After training, process the masks, evaluate the best model, and calculate the mean SNR
+process_images_across_folds()
+evaluate_and_save_best_model()
+
+# Clear any temporary images
+clear_images_in_folder()
