@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import cv2
+import sys
 
 def get_largest_power_of_2_window(image):
     """Find the largest square window with a power of 2 that fits inside the image."""
@@ -63,13 +64,16 @@ def crop_images():
             print(f"[Warning] Failed to load mask '{mask_file}'. Skipping...")
             continue
 
+        # Check if image and mask have the same size
+        if img.shape[:2] != mask.shape[:2]:
+            print(f"[ERROR] Input image and mask have different size: {img_file} and {mask_file}")
+            sys.exit(1)
+
         height, width = img.shape[:2]
 
-        # Calculate required padding only if necessary
         pad_height = ((height - crop_size) % stride == 0) and height or ((height - crop_size) // stride + 1) * stride + crop_size
         pad_width = ((width - crop_size) % stride == 0) and width or ((width - crop_size) // stride + 1) * stride + crop_size
 
-        # Pad images and masks
         padded_img = pad_image(img, pad_height, pad_width)
         padded_mask = pad_image(mask, pad_height, pad_width)
 
