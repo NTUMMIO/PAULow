@@ -94,7 +94,7 @@ class DynamicLoss(torch.nn.Module):
 # ===========================
 
 class EarlyStopping:
-    def __init__(self, patience=5, delta=0, threshold=0.05):
+    def __init__(self, patience=5, delta=0.00, threshold=0.05):
         self.patience = patience
         self.delta = delta
         self.threshold = threshold
