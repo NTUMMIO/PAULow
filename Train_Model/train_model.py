@@ -37,7 +37,7 @@ images_path = os.path.join(dataset_path, "Training_Images")
 masks_path = os.path.join(dataset_path, "Training_Masks")
 
 # Hyperparameters
-batch_size = 16
+batch_size = 4
 num_epochs = 100
 num_folds = 5
 learning_rate = 0.00001
