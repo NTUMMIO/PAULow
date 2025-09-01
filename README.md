@@ -49,6 +49,10 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 1. "COPY" images to Use_Model/INPUT_IMAGES
 2. Run use_model.py and follow the prompts on terminal. Segmented Masks can be seen in Use_Model/OUTPUT_MASKS.
 
+## Fine-tune Saved Model
+1. "COPY" images to Finetune_Model/INPUT_IMAGES and masks to Finetune_Model/INPUT_MASKS
+2. Run finetune_model.py and follow the prompts on terminal. Fine-tuned models will be saved in Use_Model/saved_models with the name of {ORIGINAL_NAME}_finetuned.pth. To use this finetuned_model, run use_model and follow the prompts.
+
 ## **WARNING** 
    **To prevent data from different datasets from being mixed together, train_model.py will automatically delete all images in Train_Model/TRAINING_IMAGES and Train_Model/TRAINING_MASKS.**
    
